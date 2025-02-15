@@ -1,5 +1,9 @@
 import streamlit as st
 import pandas as pd
+import datetime
+
+from git_stat_page import get_leaderboard_data, upsert_leaderboard_data, get_yearly_contributions
+
 
 # ----- PAGE CONFIG & STYLES -----
 st.set_page_config(
@@ -144,209 +148,30 @@ def projects_page():
 
 
 def leaderboards_page():
+    
+    st.subheader("View Geek's GitHub Contributions!")
+    st.write("Enter your GitHub username and your personal access token")
 
-    st.subheader("Map Visualization")
-    st.write(
-        """
-        Below is an interactive map (for demonstration) of Singapore. 
-        Select different **filters** to visualize them on the map.
-        """
-    )
+    username = st.text_input("GitHub Username")
+    token = st.text_input("Personal Access Token", type="password")
+    current_year = datetime.datetime.now().year
+    # Here we use a fixed year; you can make this dynamic with st.number_input if needed.
+    year = 2025
 
-    # map the name to proper name in st
-    mapping_df = pd.DataFrame.from_dict(column_mapping, orient='index')
+    if st.button("Upload Contributions"):
+        if username and token:
+            try:
+                # Fetch contributions from GitHub
+                contributions = get_yearly_contributions(username, token, int(year))
+                st.success(f"{username}, you made {contributions} contributions in {year}.")
 
-    # select only the columns that are after Multigenerational housing
-    mapping_df = mapping_df.iloc[9:]
-    # Create a toggleable section for documentation
-    with st.expander("See Column Specifications"):
-        st.write(mapping_df)
-
-    try:
-
-        @st.cache_data
-        def load_data():
-            # Load the GeoDataFrame
-            gdf = gpd.read_file("data/gdf.geojson")
-            gdf["longitude"] = gdf.geometry.centroid.x
-            gdf["latitude"] = gdf.geometry.centroid.y
-
-            # Rename columns based on column_mapping
-            # rename_dict = {col: column_mapping[col]['name'] for col in gdf.columns if col in column_mapping}
-            # gdf_renamed = gdf.rename(columns=rename_dict, inplace=False)
-
-            return gdf
-        
-        
-        def parse_description(description):
-            soup = BeautifulSoup(description, 'html.parser')
-            data = {}
-            
-            # Find all table rows within the table
-            for row in soup.find_all('tr'):
-                # Find all cells in the row
-                cells = row.find_all(['th', 'td'])  # Include both th and td
-                if len(cells) == 2:  # Ensure the row has exactly 2 cells
-                    key = cells[0].text.strip()  # First cell is the key
-                    value = cells[1].text.strip()  # Second cell is the value
-                    data[key] = value
-            
-            return data
-
-        @st.cache_data
-        def load_dwellings_data():
-            dwellings = gpd.read_file("data/dwellings.geojson")
-            # Apply the parsing function to the 'Description' column
-            dwellings_data = dwellings['Description'].apply(parse_description)
-
-            # Convert the parsed data to a DataFrame and concatenate with the original GeoDataFrame
-            dwellings_df = pd.DataFrame(dwellings_data.tolist())
-            dwellings["latitude"] = dwellings.geometry.centroid.y
-            dwellings["longitude"] = dwellings.geometry.centroid.x
-            dwellings = pd.concat([dwellings, dwellings_df], axis=1)
-            dwellings = dwellings.drop(columns=['Description'])
-            return dwellings[:10000]
-        
-        @st.cache_data
-        def load_supermarkets_data():
-            supermarkets = gpd.read_file("data/SupermarketsGEOJSON.geojson")
-
-            # Apply the parsing function to the 'Description' column
-            supermarkets_data = supermarkets['Description'].apply(parse_description)
-
-            
-
-            supermarkets_df = pd.DataFrame(supermarkets_data.tolist())
-            supermarkets = pd.concat([supermarkets, supermarkets_df], axis=1)
-            supermarkets = supermarkets.drop(columns=['Description'])
-            return supermarkets
-
-        with st.spinner("Loading data..."):
-            gdf = load_data()
-            dwellings = load_dwellings_data()
-            supermarkets = load_supermarkets_data()
-            geojson_data = gdf.__geo_interface__
-
-        numeric_columns = gdf.select_dtypes(include=[np.number]).columns
-        numeric_columns = numeric_columns.drop(["longitude", "latitude"])
-        filter_option = st.selectbox("Select Filter", numeric_columns, index=0, format_func=lambda x: f"{x}")
-        selected_column = filter_option
-        selected_column_name = column_mapping[selected_column]["name"]
-        selected_column_desc = column_mapping[selected_column]["description"]
-
-        # Map style selection
-        map_style = st.sidebar.selectbox(
-            "Select Map Style",
-            options=["carto-positron", "carto-darkmatter", "open-street-map"],
-        )
-
-        # st.markdown(f"Display Name: **{selected_column}**")
-        # st.markdown(f"### Data: **{selected_column_name}**")
-        st.markdown(
-                f"""
-                <div style="background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                    <h4 style="color: #333;">Description:</h4>
-                    <p>{selected_column_desc}</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-        )
-        fig = px.choropleth_mapbox(
-            gdf,
-            geojson=geojson_data,
-            locations=gdf.index,  # Use index to match geometry
-            color=selected_column,
-            hover_name="PLN_AREA_N",
-            hover_data=[selected_column],
-            title=f"{selected_column_name} Heatmap Data by Location",
-            mapbox_style=map_style,
-            center={
-                "lat": gdf.geometry.centroid.y.mean(),
-                "lon": gdf.geometry.centroid.x.mean(),
-            },
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-        # If you just want to show the map with pinned centroids
-
-        fig2 = px.scatter_mapbox(
-            gdf,
-            lat="latitude",
-            lon="longitude",
-            size=selected_column,
-            color=selected_column,
-            hover_name="PLN_AREA_N",
-            hover_data=[selected_column],
-            title=f"{selected_column_name} Scatter Plot Data by Location",
-            mapbox_style=map_style,
-        )
-        # Display the map
-        st.plotly_chart(fig2, use_container_width=True)
-
-
-        fig3 = px.density_mapbox(
-            gdf,
-            lat="latitude",
-            lon="longitude",
-            z=selected_column,
-            radius=10,
-            hover_name="PLN_AREA_N",
-            hover_data=[selected_column],
-            title=f"{selected_column_name} Density Plot Data by Location",
-            mapbox_style=map_style,
-        )
-        # Display the map
-        st.plotly_chart(fig3, use_container_width=True)
-
-        # fig4 = px.line_mapbox(
-        #     gdf,
-        #     lat="latitude",
-        #     lon="longitude",
-        #     color=selected_column,
-        #     hover_name="Name",
-        #     hover_data=["PLN_AREA_N", "REGION_N"],
-        #     title=f"{selected_column_name} Line Plot Data by Location",
-        #     mapbox_style=map_style,
-        # )
-
-        # st.plotly_chart(fig4, use_container_width=True)
-
-
-        # Display Custom GeoData from dwellings.geojson
-        st.subheader("Miscellaneous Data")
-        st.write("##### URA Number of Dwellings")
-        fig5 = px.scatter_mapbox(
-            dwellings,
-            lat=dwellings.geometry.centroid.y,
-            lon=dwellings.geometry.centroid.x,
-            color="PROP_TYPE",  # Color points based on property type
-            hover_data=["PROP_TYPE", "DU"],
-            title="URA Number of Dwellings by Location with Property Type",
-            mapbox_style="carto-positron",
-        )
-
-        st.plotly_chart(fig5, use_container_width=True)
-
-        st.write("##### Supermarkets in Singapore")
-
-        fig6 = px.scatter_mapbox(
-            supermarkets,
-            lat=dwellings.geometry.centroid.y,
-            lon=dwellings.geometry.centroid.x,
-            # color="UNIT_NO",
-            # hover_data=["STR_NAME", "POSTALCODE", "REGION"],
-            title="Supermarkets in Singapore",
-            mapbox_style="carto-positron",
-        )
-
-        st.plotly_chart(fig6, use_container_width=True)
-
-        #display housing types in gdf
-    except Exception as e:
-        st.warning(
-            f"Could not load or display GeoData. Check your file path or data format.\n\nError: {e}"
-        )
+                # Upsert data into Supabase (update if exists, otherwise insert)
+                upsert_response = upsert_leaderboard_data(username, contributions)
+                st.write("Data upsert response:", upsert_response)
+            except Exception as e:
+                st.error(f"Error: {e}")
+        else:
+            st.warning("Please enter both your GitHub username and personal access token.")
 
 
 

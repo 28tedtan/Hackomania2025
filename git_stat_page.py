@@ -77,33 +77,3 @@ def get_yearly_contributions(username, token, year):
         return total
     else:
         raise Exception(f"Query failed with status code {response.status_code}: {response.text}")
-
-def main():
-    st.title("GitHub Contributions Uploader")
-    st.write("Enter your GitHub username and your personal access token")
-
-    username = st.text_input("GitHub Username")
-    token = st.text_input("Personal Access Token", type="password")
-    current_year = datetime.datetime.now().year
-    # Here we use a fixed year; you can make this dynamic with st.number_input if needed.
-    year = 2025
-
-    if st.button("Upload Contributions"):
-        if username and token:
-            try:
-                # Fetch contributions from GitHub
-                contributions = get_yearly_contributions(username, token, int(year))
-                st.success(f"{username}, you made {contributions} contributions in {year}.")
-
-                # Upsert data into Supabase (update if exists, otherwise insert)
-                upsert_response = upsert_leaderboard_data(username, contributions)
-                st.write("Data upsert response:", upsert_response)
-            except Exception as e:
-                st.error(f"Error: {e}")
-        else:
-            st.warning("Please enter both your GitHub username and personal access token.")
-
-    # Optional: Code to display leaderboard data
-
-if __name__ == "__main__":
-    main()
