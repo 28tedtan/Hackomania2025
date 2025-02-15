@@ -11,7 +11,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Fetch data from Supabase
 def get_data():
-    response = supabase.table("your_table").select("*").execute()
+    response = supabase.table("opport").select("*").execute()
     return pd.DataFrame(response.data)
 
 # Streamlit UI
