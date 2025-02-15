@@ -4,6 +4,7 @@ import datetime
 import altair as alt
 
 from git_stat_page import get_leaderboard_data, upsert_leaderboard_data, get_yearly_contributions
+from socials_page_test import hard_coded_socials_page
 
 
 # ----- PAGE CONFIG & STYLES -----
@@ -46,7 +47,7 @@ def main():
         "Go to",
         [
             "Dashboard",
-            "Projects",
+            "Socials",
             "Leaderboards",
             "Github Projects",
             "Recommendations"
@@ -56,6 +57,8 @@ def main():
     st.sidebar.markdown("---")
     st.sidebar.write("**User:** John Doe")
     st.sidebar.write("**Version:** 0.0.1")
+    st.sidebar.write("Bio: Just a tech enthusiast sharing random moments.")
+
     if st.sidebar.button("Logout"):
         st.sidebar.write("You have logged out.")
 
@@ -68,9 +71,9 @@ def main():
 
     if selected_page == "Dashboard":
         dashboard_page()
-
-    elif selected_page == "Projects":
-        projects_page()
+    
+    elif selected_page == "Socials":
+        socials_page()
 
     elif selected_page == "Leaderboards":
         leaderboards_page()
@@ -123,33 +126,11 @@ def dashboard_page():
     st.info("Navigate using the sidebar to explore other features.")
 
 
-def projects_page():
-    st.subheader("Ask the Smart Agent")
-    st.write(
-        """
-        Input your query related to **demographic, transportation, economic, environment, or social** issues, 
-        and let the agent automatically collect and consolidate old and new information from your prorietary data lakehouse.
-        """
-    )
-    user_query = st.text_input(
-        "What would you like to find out?",
-        value="What is the distribution of green spaces in Singapore across different planning areas?",
-    )
-
-    if st.button("Get Insight Report"):
-        #st.markdown("### Insight Report")
-        # Placeholder text
-        insight_report = generate_insight_report(user_query)
-        st.write(insight_report)
-        # Optionally display some “calls” or “steps” if you want to mimic an agent’s chain-of-thought (in a user-friendly format).
-
-        report_bytes = BytesIO(insight_report.encode('utf-8'))
-        st.download_button(
-            label="Download Insight Report",
-            data=report_bytes,
-            file_name="insight_report.txt",
-            mime="text/plain"
-        )
+def socials_page():
+    # st.subheader("GeekSocial")
+    # st.markdown("---")
+    # st.markdown("### Share your thoughts, ideas, and creations with the community!")
+    hard_coded_socials_page()
 
 
 def leaderboards_page():
