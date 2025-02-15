@@ -5,6 +5,7 @@ import altair as alt
 
 from git_stat_page import get_leaderboard_data, upsert_leaderboard_data, get_yearly_contributions
 from socials_page_test import hard_coded_socials_page
+from recommendations_page import find_matches
 
 
 # ----- PAGE CONFIG & STYLES -----
@@ -188,49 +189,27 @@ def github_projects_page():
 
 
 def recommendations_page():
-    st.subheader("Comparative Analysis")
-    st.write(
-        """
-        Wondering how other cities or countries tackle similar problems? 
-        Ask the agent to pull **external data or case studies** from the web.
-        """
-    )
+    st.subheader("Simple Recommendation Engine")
 
-    compare_query = st.text_input(
-        "For example: 'How do cities like Tokyo address demographic aging?'",
-        value="How do cities like Tokyo address demographic aging?",
-    )
+    # Input interests from the current user
+    st.write("Enter your interests (separate by commas):")
+    interests_input = st.text_input(label="Your Interests", value="music, sports, coding")
 
-    if st.button("Compare with Other Countries"):
-        summary = generate_comparative_analysis(compare_query)
-        st.markdown("### Comparative Analysis Results")
-        st.write(summary)
-
-
-def synthetic_generation_page():
-    st.subheader("Synthetic Generation")
-    st.write(
-        """
-        Want to create new data points that don't exist in the database? 
-        Ask the agent to generate **synthetic data** based on the existing data.
-        """
-    )
-
-    synthetic_query = st.text_input(
-        "For example: 'Generate synthetic data for a new city with demographic data'",
-        value="Generate synthetic data for Singapore with demographic data to simulate population growth after a year",
-    )
-
-    if st.button("Generate Synthetic Data"):
-        csv_data = generate_synthetic_data_code(synthetic_query)
-        st.markdown("### Synthetic Data")
-        st.download_button(
-            label="Download synthetic_data.csv",
-            data=csv_data,
-            file_name="synthetic_data.csv",
-            mime="text/csv"
-        )
-
+    # Convert user input into a set of interests
+    current_user_interests = {i.strip().lower() for i in interests_input.split(",") if i.strip()}
+    if st.button("Find Matches"):
+        top_matches = find_matches(current_user_interests)
+        st.subheader("Top 5 Matches")
+        if top_matches:
+            for match in top_matches:
+                st.write(
+                    f"User ID: {match['user_id']}, "
+                    f"Name: {match['name']}, "
+                    f"Rating: {match['similarity']:.2f},",
+                    f"Interests: {', '.join(match['interests'])}"
+                )
+        else:
+            st.info("No matches found.")
 
 if __name__ == "__main__":
     main()
