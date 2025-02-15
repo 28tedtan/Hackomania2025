@@ -16,32 +16,3 @@ def get_leaderboard_data():
     """
     response = supabase.table("leaderboards").select("name", "contributes").execute()
     return pd.DataFrame(response.data)
-
-def main():
-    st.title("Geeks for Geeks Leaderboard")
-    st.write("Fetching data from the GeekerBase...")
-
-    # Fetch data from Supabase
-    data = get_leaderboard_data()
-    
-    # Show the raw data (optional)
-    #st.write("Raw Data", data)
-    
-    # Check if data is available and has the expected columns
-    if not data.empty and 'name' in data.columns and 'contributes' in data.columns:
-        # Create a horizontal bar chart using Altair
-        chart = alt.Chart(data).mark_bar().encode(
-            x=alt.X("contributes:Q", title="Contributions"),
-            y=alt.Y("name:N", sort='-x', title="Name")
-        ).properties(
-            width=600,
-            height=500
-        )
-        st.altair_chart(chart, use_container_width=True)
-    else:
-        st.error("There is no data in the leaderboard.")
-
-    st.link_button(label="Upload your contributions!", url="test.py",help=None, type="secondary", icon="🛠️", disabled=False, use_container_width=True)
-
-if __name__ == "__main__":
-    main()

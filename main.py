@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime
+import altair as alt
 
 from git_stat_page import get_leaderboard_data, upsert_leaderboard_data, get_yearly_contributions
 
@@ -47,6 +48,7 @@ def main():
             "Dashboard",
             "Projects",
             "Leaderboards",
+            "Github Projects",
             "Recommendations"
         ],
     )
@@ -72,6 +74,9 @@ def main():
 
     elif selected_page == "Leaderboards":
         leaderboards_page()
+    
+    elif selected_page == "Github Projects":
+        github_projects_page()
 
     elif selected_page == "Recommendations":
         recommendations_page()
@@ -148,7 +153,34 @@ def projects_page():
 
 
 def leaderboards_page():
+    st.subheader("Geeks for Geeks Leaderboard")
+    st.write("Fetching data from the GeekerBase...")
+
+    # Fetch data from Supabase
+    data = get_leaderboard_data()
     
+    # Show the raw data (optional)
+    # TODO: There's some sort of error here to fix
+    #st.write("Raw Data", data)
+    
+    # Check if data is available and has the expected columns
+    if not data.empty and 'name' in data.columns and 'contributes' in data.columns:
+        # Create a horizontal bar chart using Altair
+        chart = alt.Chart(data).mark_bar().encode(
+            x=alt.X("contributes:Q", title="Contributions"),
+            y=alt.Y("name:N", sort='-x', title="Name")
+        ).properties(
+            width=600,
+            height=500
+        )
+        st.altair_chart(chart, use_container_width=True)
+    else:
+        st.error("There is no data in the leaderboard.")
+
+    st.link_button(label="Upload your contributions!", url="test.py",help=None, type="secondary", icon="🛠️", disabled=False, use_container_width=True)
+    
+
+def github_projects_page():
     st.subheader("View Geek's GitHub Contributions!")
     st.write("Enter your GitHub username and your personal access token")
 
@@ -172,7 +204,6 @@ def leaderboards_page():
                 st.error(f"Error: {e}")
         else:
             st.warning("Please enter both your GitHub username and personal access token.")
-
 
 
 def recommendations_page():
