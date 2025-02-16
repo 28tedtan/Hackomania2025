@@ -105,9 +105,8 @@ def calculate_similarity(user_interests, db_interests):
 
     # Calculate final score with weights
     final_score = (
-        0.3 * jaccard +
-        0.4 * category_score +
-        0.3 * depth_score
+        0.45 * jaccard +
+        0.55 * category_score
     )
 
     return min(final_score, 1)

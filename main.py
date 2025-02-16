@@ -63,7 +63,7 @@ def main():
 
     st.sidebar.markdown("---")
     st.sidebar.write(f"**User:** {st.session_state.username}")
-    st.sidebar.write("**Version:** 1.2.1")
+    st.sidebar.write("**Version:** 2.0.3")
     st.sidebar.write(f"Bio: {st.session_state.bio}")
     
     # Profile section in sidebar
