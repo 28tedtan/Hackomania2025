@@ -91,27 +91,27 @@ def dashboard_page():
     col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
     with col_m1:
         st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.metric(label="Connections Made", value="10.5K", delta="↑125")
+        st.metric(label="Connections Made", value="10.5K", delta="125")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_m2:
         st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.metric(label="Active Users (Last 30 Days)", value="510", delta="↓2")
+        st.metric(label="Active Users (Last 30 Days)", value="510", delta="-2")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_m3:
         st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.metric(label="Engagement Rate", value="87.9%", delta="↑0.1%")
+        st.metric(label="Engagement Rate", value="87.9%", delta="0.1%")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_m4:
         st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.metric(label="Posts Created", value="150", delta="↑10")
+        st.metric(label="Posts Created", value="150", delta="10")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_m5:
         st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.metric(label="Average Session Time", value="30 minutes", delta="↓0.1s")
+        st.metric(label="Average Session Time", value="30 minutes", delta="-0.1s")
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.write("---")
