@@ -1,7 +1,17 @@
 import streamlit as st
 from supabase import create_client, Client
-from collections import Counter
-import math
+import spacy
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+
+# Load spaCy model
+try:
+    nlp = spacy.load('en_core_web_sm')
+except:
+    st.warning("Downloading language model for the first time...")
+    spacy.cli.download('en_core_web_sm')
+    nlp = spacy.load('en_core_web_sm')
 
 # --- Supabase Connection Setup ---
 SUPABASE_URL = "https://mzeqafsqczyjzrbuukdc.supabase.co"
@@ -10,11 +20,18 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 # Initialize Supabase client
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+def preprocess_text(text):
+    """Process text using spaCy for better matching"""
+    doc = nlp(text.lower())
+    # Remove stop words and punctuation, lemmatize
+    return ' '.join([token.lemma_ for token in doc 
+                    if not token.is_stop and not token.is_punct])
+
 def calculate_similarity(user_interests, db_interests):
     """
-    Calculate similarity score using multiple metrics with synonym matching
+    Calculate similarity using spaCy and TF-IDF
     """
-    # Interest synonyms and related terms
+    # Interest synonyms and related terms (keep this for expanding interests)
     interest_mapping = {
         'gaming': {'gaming', 'video games', 'playing games', 'games', 'gamer'},
         'programming': {'programming', 'coding', 'software development', 'development'},
@@ -24,52 +41,40 @@ def calculate_similarity(user_interests, db_interests):
         'blockchain': {'blockchain', 'crypto', 'web3', 'cryptocurrency'},
     }
     
-    # Normalize and expand interests using synonyms
-    def normalize_interests(interests):
-        normalized = set()
+    # Expand interests using synonyms
+    def expand_interests(interests):
+        expanded = set()
         for interest in interests:
-            interest = interest.lower().strip()
-            # Add the original interest
-            normalized.add(interest)
-            # Add any synonyms
+            expanded.add(interest)
+            # Add synonyms
             for category, synonyms in interest_mapping.items():
-                if interest in synonyms:
-                    normalized.update(synonyms)
-        return normalized
+                if interest.lower().strip() in synonyms:
+                    expanded.update(synonyms)
+        return expanded
     
-    # Normalize both sets of interests
-    user_interests = normalize_interests(user_interests)
-    db_interests = normalize_interests(db_interests)
+    # Expand and preprocess interests
+    user_expanded = expand_interests(user_interests)
+    db_expanded = expand_interests(db_interests)
     
-    # Jaccard Similarity (20% weight)
-    intersection = len(user_interests.intersection(db_interests))
-    union = len(user_interests.union(db_interests))
-    jaccard = intersection / union if union > 0 else 0
+    # Convert to processed text
+    user_text = ' '.join(user_expanded)
+    db_text = ' '.join(db_expanded)
     
-    # TF-IDF like weighting (55% weight)
-    interest_weights = {
-        'gaming': 0.5,
-        'programming': 0.5,
-        'coding': 0.5,
-        'technology': 0.5,
-        'ai': 0.8,
-        'machine learning': 0.8,
-        'blockchain': 0.9,
-        'quantum computing': 1.0,
-        'cybersecurity': 0.9
-    }
+    user_processed = preprocess_text(user_text)
+    db_processed = preprocess_text(db_text)
     
-    weighted_score = 0
-    matched_interests = user_interests.intersection(db_interests)
-    for interest in matched_interests:
-        # Find the highest weight among synonyms
-        weight = 0.7  # default weight
-        for category, synonyms in interest_mapping.items():
-            if interest in synonyms:
-                weight = max(weight, interest_weights.get(category, 0.7))
-        weighted_score += weight
+    # TF-IDF Vectorization (40% weight)
+    tfidf = TfidfVectorizer()
+    try:
+        tfidf_matrix = tfidf.fit_transform([user_processed, db_processed])
+        tfidf_score = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+    except:
+        tfidf_score = 0
     
-    weighted_score = weighted_score / (len(user_interests) + 1)  # Normalize
+    # Semantic Similarity using spaCy (35% weight)
+    user_doc = nlp(user_processed)
+    db_doc = nlp(db_processed)
+    semantic_score = user_doc.similarity(db_doc)
     
     # Category matching (25% weight)
     categories = {
@@ -79,14 +84,13 @@ def calculate_similarity(user_interests, db_interests):
         'security': {'cybersecurity', 'cyber security', 'hacking', 'cryptography', 'blockchain'}
     }
     
-    category_score = 0
     user_categories = set()
     db_categories = set()
     
     for category, terms in categories.items():
-        if any(term in user_interests for term in terms):
+        if any(term in user_expanded for term in terms):
             user_categories.add(category)
-        if any(term in db_interests for term in terms):
+        if any(term in db_expanded for term in terms):
             db_categories.add(category)
     
     category_overlap = len(user_categories.intersection(db_categories))
@@ -94,9 +98,9 @@ def calculate_similarity(user_interests, db_interests):
     
     # Final weighted score
     final_score = (
-        0.27 * jaccard +
-        0.33 * weighted_score +
-        0.4 * category_score
+        0.4 * tfidf_score +
+        0.35 * semantic_score +
+        0.25 * category_score
     )
     
     return min(final_score, 1)
