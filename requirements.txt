@@ -5,5 +5,4 @@ datetime
 altair
 supabase
 requests
-collections
 math
