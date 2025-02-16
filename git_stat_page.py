@@ -30,14 +30,14 @@ def upsert_leaderboard_data(username, contributions):
     
     if check_response.data:
         # Update the contributions if the record exists
-        update_response = supabase.table("leaderboards") \
+        update_response = supabase.table("leaderboards-v2") \
             .update({"contributes": contributions}) \
             .eq("name", username) \
             .execute()
         return update_response
     else:
         # Insert a new record if the username doesn't exist
-        insert_response = supabase.table("leaderboards") \
+        insert_response = supabase.table("leaderboards-v2") \
             .insert({"name": username, "contributes": contributions}) \
             .execute()
         return insert_response
@@ -77,3 +77,4 @@ def get_yearly_contributions(username, token, year):
         return total
     else:
         raise Exception(f"Query failed with status code {response.status_code}: {response.text}")
+
