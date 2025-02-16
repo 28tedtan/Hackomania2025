@@ -10,7 +10,6 @@ st.set_page_config(
 )
 
 from git_stat_page import get_leaderboard_data, upsert_leaderboard_data, get_yearly_contributions
-from socials_page_test import hard_coded_socials_page
 from recommendations_page import find_matches
 from socials_page import save_posts, init_session_state
 
@@ -38,12 +37,19 @@ st.markdown(
     section[data-testid="stSidebar"] .css-1d391kg {
         color: #ffffff;
     }
+
     </style>
     """,
     unsafe_allow_html=True,
 )
 
 def main():
+    # Initialize session state variables at the start
+    if 'username' not in st.session_state:
+        st.session_state.username = "John Doe"
+    if 'bio' not in st.session_state:
+        st.session_state.bio = "Just a tech enthusiast sharing random moments."
+
     st.sidebar.title("Navigation")
     selected_page = st.sidebar.radio(
         "Go to",
@@ -56,10 +62,22 @@ def main():
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.write("**User:** John Doe")
-    st.sidebar.write("**Version:** 0.0.1")
-    st.sidebar.write("Bio: Just a tech enthusiast sharing random moments.")
+    st.sidebar.write(f"**User:** {st.session_state.username}")
+    st.sidebar.write("**Version:** 1.2.1")
+    st.sidebar.write(f"Bio: {st.session_state.bio}")
+    
+    # Profile section in sidebar
+    with st.sidebar.expander("✏️ Edit Profile", expanded=False):
+        new_username = st.text_input("Username", value=st.session_state.username)
+        new_bio = st.text_area("Bio", value=st.session_state.bio, max_chars=200)
+        
+        if st.button("Save Profile"):
+            st.session_state.username = new_username
+            st.session_state.bio = new_bio
+            st.success("Profile updated!")
+            st.rerun()
 
+    # Logout button moved to bottom
     if st.sidebar.button("Logout"):
         st.sidebar.write("You have logged out.")
 
@@ -88,27 +106,27 @@ def dashboard_page():
     col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
     with col_m1:
         st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.metric(label="Connections Made", value="10.5K", delta="125")
+        st.metric(label="Connections Made", value="10.5K", delta="12.3%")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_m2:
         st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.metric(label="Active Users (Last 30 Days)", value="510", delta="-2")
+        st.metric(label="Active Users (Last 30 Days)", value="510", delta="1.7%")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_m3:
         st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.metric(label="Engagement Rate", value="87.9%", delta="0.1%")
+        st.metric(label="Engagement Rate", value="87.9%", delta="-0.9%")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_m4:
         st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.metric(label="Posts Created", value="150", delta="10")
+        st.metric(label="Posts Created", value="153", delta="3.8%")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_m5:
         st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.metric(label="Average Session Time", value="30 minutes", delta="-0.1s")
+        st.metric(label="Average Session Time", value="29.3 min", delta="-7.9%")
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.write("---")
