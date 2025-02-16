@@ -16,7 +16,7 @@ def get_leaderboard_data():
     """
     Fetches the leaderboard data with columns 'name' and 'contributes' from the Supabase table.
     """
-    response = supabase.table("leaderboards").select("name", "contributes").execute()
+    response = supabase.table("leaderboards-v2").select("id","name", "contributes").execute()
     return pd.DataFrame(response.data)
 
 def upsert_leaderboard_data(username, contributions):
@@ -26,7 +26,7 @@ def upsert_leaderboard_data(username, contributions):
     Otherwise, insert a new record.
     """
     # Check if the username already exists
-    check_response = supabase.table("leaderboards").select("*").eq("name", username).execute()
+    check_response = supabase.table("leaderboards-v2").select("*").eq("name", username).execute()
     
     if check_response.data:
         # Update the contributions if the record exists
@@ -52,7 +52,7 @@ def get_yearly_contributions(username, token, year):
     start_date = datetime.datetime(year, 1, 1).isoformat() + "Z"
     end_date = datetime.datetime(year, 12, 31, 23, 59, 59).isoformat() + "Z"
 
-    query = """
+    query ="""
     query($username: String!, $from: DateTime!, $to: DateTime!) {
       user(login: $username) {
         contributionsCollection(from: $from, to: $to) {

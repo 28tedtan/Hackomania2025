@@ -11,8 +11,6 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def get_leaderboard_data():
-    """
-    Fetches the leaderboard data with columns 'name' and 'contributes' from the Supabase table.
-    """
-    response = supabase.table("leaderboards").select("name", "contributes").execute()
+    response = supabase.table("leaderboards-v2").select("id", "name", "contributes").execute()
     return pd.DataFrame(response.data)
+    
