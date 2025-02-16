@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import altair as alt
+import pyperclip as pyperclip
 
 # ----- PAGE CONFIG & STYLES -----
 st.set_page_config(
