@@ -50,8 +50,7 @@ def main():
         [
             "Dashboard",
             "Socials",
-            "Leaderboards",
-            "Github Projects",
+            "Github Leaderboard",
             "Recommendations"
         ],
     )
@@ -77,11 +76,8 @@ def main():
     elif selected_page == "Socials":
         socials_page()
 
-    elif selected_page == "Leaderboards":
+    elif selected_page == "Github Leaderboard":
         leaderboards_page()
-    
-    elif selected_page == "Github Projects":
-        github_projects_page()
 
     elif selected_page == "Recommendations":
         recommendations_page()
@@ -260,12 +256,7 @@ def leaderboards_page():
     else:
         st.error("There is no data in the leaderboard.")
 
-    st.link_button(label="Upload your contributions!", url="test.py",help=None, type="secondary", icon="🛠️", disabled=False, use_container_width=True)
-    
-
-def github_projects_page():
-    st.subheader("View Geek's GitHub Contributions!")
-    st.write("Enter your GitHub username and your personal access token")
+    st.write("Enter your GitHub username and your personal access token to upload your contributions to the leaderboard!")
 
     username = st.text_input("GitHub Username")
     token = st.text_input("Personal Access Token", type="password")
