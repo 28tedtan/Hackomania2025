@@ -2,10 +2,11 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import altair as alt
+import pyperclip
 
 # ----- PAGE CONFIG & STYLES -----
 st.set_page_config(
-    page_title="Connect.ai App", page_icon="🌆", layout="wide"
+    page_title="Geek Connect", page_icon="🌆", layout="wide"
 )
 
 from git_stat_page import get_leaderboard_data, upsert_leaderboard_data, get_yearly_contributions
@@ -83,7 +84,7 @@ def main():
     st.title("Connect with other Geeks!")
     st.markdown(
         """
-        Welcome to the **Connect.ai** application, a platform that connects geeks with other geeks! Powered by AI.
+        Welcome to the **Geek Connect** application, a platform that connects geeks with other geeks!
         """
     )
 
