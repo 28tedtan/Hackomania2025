@@ -1,0 +1,9 @@
+streamlit
+pyperclip
+pandas
+datetime
+altair
+supabase
+json
+os
+requests
