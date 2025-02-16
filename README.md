@@ -1,4 +1,3 @@
+[Geek Connect](https://geek-connect.streamlit.app/). An app that connects geeks with each other.Built by Geeks, for geeks.
+This is built for Hackomania 2025, challenge 3.
 Coders: Dhanush, Ted, Dylan, Gabriel
-For Hackomania 2025, challenge 3
-Built by Geeks, for geeks.
-Live app at geek-connect.streamlit.app 
